@@ -1,0 +1,92 @@
+import os
+import time
+
+import xlrd
+import openpyxl
+
+print(os.getcwd()) # 打印当前工作目录
+# os.chdir('E:\Desktop\巡检excel') # 将当前工作目录改变为`E:\Desktop\巡检excel`
+# print(os.getcwd()) # 打印当前工作目录
+# print(os.listdir())
+
+
+def get_file_name(file_dir):
+		file_list=[]
+		for root, dirs, files in os.walk(file_dir):
+			for file in files:
+				if 'nmon.xlsx' in file:
+					file_list.append(file)
+				# if os.path.splitext(file)[1] == '.xlsx':
+				# 	file_list.append(file)
+                #  os.path.splitext 分割 文件名和扩展名
+		return(file_list)
+
+
+def get_max_cpu(inpath):
+    data = xlrd.open_workbook(inpath, encoding_override='utf-8')
+    allSheetNames = data.sheet_names();
+    for num in range(len(allSheetNames)) :
+        if allSheetNames[num] == 'CPU_ALL' or allSheetNames[num] == 'PCPU_ALL' :
+            CPU_ALL_num=num
+    # print("第%d个Sheet是%s"%(CPU_ALL_num,allSheetNames[CPU_ALL_num]))
+    table = data.sheets()[CPU_ALL_num]  # 选定表[sheet],从0开始计算
+    nrows = table.nrows-2 # 获取行号
+    ncols = table.ncols  # 获取列号
+    print("共%d行，%d列，%s位于第%d个Sheet"%(nrows,ncols,allSheetNames[CPU_ALL_num],CPU_ALL_num))
+
+    # 输出所有sheet名字和对应的位置 选择行开启
+    # allSheetNames = data.sheet_names();
+    # for num in range(len(allSheetNames)) :
+    #     print("第%d个Sheet是%s"%(num,allSheetNames[num]))
+
+    cpu_list=[]	#创建一个空列表来保存cpu值
+    for i in range(1, nrows):  # 第0行为表头
+        alldata = table.row_values(i)  # 循环输出excel表中每一行，即所有数据
+        result = alldata[9]  # 取出表中第十列数据
+        result = round(result,2)  #保留一个小数位置 四舍五入 可能造成部分精度丢失
+        cpu_list.append(result)	 #将cpu值依次添加到列表后面
+    # print(cpu_list)	#输出保存的列表，可以选择输出还是不输出
+    return max(cpu_list)
+
+
+def create_excel(fname, maxcpu):
+    new_data = [fname,maxcpu]
+    tm = time.strftime("%Y%m%d%H%M%S", time.localtime())
+    new_data.append(tm)
+    fisrt_rows = ['FILE_NAME', 'MAX_CPU', 'ADD_TIME']
+
+    info_record_file = 'cpu_max.xlsx'
+    if os.access(info_record_file, os.F_OK):
+        print()
+        # print('%s already exists and will be appended' % info_record_file)
+    else:
+        print('%s does not exist, the file will be created' % info_record_file)
+        wb = openpyxl.Workbook()  # 新建一个工作簿（workbook）
+        wb.save(info_record_file)  # 保存并关闭工作簿
+        init_1 = openpyxl.load_workbook(filename=info_record_file)  # 调用已有的工作簿（workbook）
+        init_activesheet = init_1[init_1.sheetnames[0]]
+        init_activesheet.append(fisrt_rows)  # 写数据
+        init_1.save(info_record_file)
+
+    WB = openpyxl.load_workbook(filename=info_record_file)  # 调用已有的工作簿（workbook）
+    activesheet = WB[WB.sheetnames[0]]
+    activesheet.append(new_data)  # 写数据
+    WB.save(info_record_file)  # 保存并关闭工作簿
+
+def GET_ALL_CPU_max():
+    file_dir=os.getcwd()
+    len_get_file_name=len(get_file_name(file_dir))
+    print('一共找到%d个需要处理的excel文件，列表如下：'%len_get_file_name)
+    print(get_file_name(file_dir))
+    file_name_list=[]
+
+    for inpath in get_file_name(file_dir):
+        tmp_cpu_max=get_max_cpu(inpath)
+        print("%s" % inpath)
+        print("CPU最大值为%.2f "%tmp_cpu_max)
+        create_excel(inpath,tmp_cpu_max)
+
+
+if __name__ == '__main__':
+    GET_ALL_CPU_max()
+    print('OVER')
