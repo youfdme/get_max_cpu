@@ -55,7 +55,7 @@ def create_excel(fname, maxcpu):
     new_data.append(tm)
     fisrt_rows = ['FILE_NAME', 'MAX_CPU', 'ADD_TIME']
 
-    info_record_file = 'cpu_max.xlsx'
+    info_record_file = 'cpu_max.xlsx' #指定输出结果文件
     if os.access(info_record_file, os.F_OK):
         print()
         # print('%s already exists and will be appended' % info_record_file)
@@ -64,9 +64,9 @@ def create_excel(fname, maxcpu):
         wb = openpyxl.Workbook()  # 新建一个工作簿（workbook）
         wb.save(info_record_file)  # 保存并关闭工作簿
         init_1 = openpyxl.load_workbook(filename=info_record_file)  # 调用已有的工作簿（workbook）
-        init_activesheet = init_1[init_1.sheetnames[0]]
+        init_activesheet = init_1[init_1.sheetnames[0]]#获取第一个sheet
         init_activesheet.append(fisrt_rows)  # 写数据
-        init_1.save(info_record_file)
+        init_1.save(info_record_file)#保证文件
 
     WB = openpyxl.load_workbook(filename=info_record_file)  # 调用已有的工作簿（workbook）
     activesheet = WB[WB.sheetnames[0]]
@@ -74,9 +74,9 @@ def create_excel(fname, maxcpu):
     WB.save(info_record_file)  # 保存并关闭工作簿
 
 def GET_ALL_CPU_max():
-    file_dir=os.getcwd()
+    file_dir=os.getcwd()#获取当前路径
     len_get_file_name=len(get_file_name(file_dir))
-    print('一共找到%d个需要处理的excel文件，列表如下：'%len_get_file_name)
+    print('一共找到%d个需要处理的excel文件，列表如下：'%len_get_file_name) #输出查找到的文件结果
     print(get_file_name(file_dir))
     file_name_list=[]
 
